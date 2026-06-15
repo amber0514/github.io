@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>兒童學習遊戲樂園</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: linear-gradient(135deg, #fce4ec, #e8f5e9, #fff3e0);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  header {
+    text-align: center;
+    padding: 30px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(102,126,234,0.3);
+  }
+  header h1 {
+    color: #fff;
+    font-size: 2.8em;
+    text-shadow: 3px 3px 0 rgba(0,0,0,0.15);
+    letter-spacing: 4px;
+  }
+  header p { color: #e0e7ff; font-size: 1.2em; margin-top: 8px; }
+
+  /* Nav */
+  .game-nav {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+  .game-nav button {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1em;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    color: #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+  .game-nav button:hover { transform: translateY(-4px) scale(1.03); }
+  .game-nav button:active { transform: scale(0.96); }
+  .nav-home     { background: linear-gradient(135deg, #a8edea, #fed6e3); color: #555; }
+  .nav-memory  { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .nav-math    { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  .nav-spelling{ background: linear-gradient(135deg, #43e97b, #38f9d7); }
+  .nav-journal { background: linear-gradient(135deg, #fa709a, #fee140); }
+  .game-nav button.active {
+    box-shadow: 0 0 0 5px #fff, 0 6px 20px rgba(0,0,0,0.25);
+  }
+
+  /* Home */
+  .home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 10px;
+  }
+  .home-card {
+    background: #fff;
+    border-radius: 28px;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.25s, box-shadow 0.25s;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  }
+  .home-card:hover { transform: translateY(-8px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+  .home-card .icon { font-size: 4em; margin-bottom: 12px; }
+  .home-card h3 { font-size: 1.4em; color: #333; }
+  .home-card p { color: #999; font-size: 0.95em; margin-top: 6px; }
+  .home-card.card-memory  { border-bottom: 6px solid #f5576c; }
+  .home-card.card-math    { border-bottom: 6px solid #4facfe; }
+  .home-card.card-spelling{ border-bottom: 6px solid #43e97b; }
+  .home-card.card-journal { border-bottom: 6px solid #fa709a; }
+
+  /* Back button */
+  .btn-back {
+    display: inline-block;
+    margin-bottom: 16px;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1em;
+    font-weight: 700;
+    font-family: inherit;
+    background: #f0f0f0;
+    color: #666;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+  }
+  .btn-back:hover { background: #e0e0e0; color: #333; transform: translateX(-3px); }
+  .btn-back::before { content: '← '; }
+
+  /* Containers */
+  .game-container {
+    display: none;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 40px;
+    padding: 30px;
+    max-width: 800px;
+    margin: 0 auto 30px;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.08);
+    animation: fadeUp 0.4s ease;
+  }
+  .game-container.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .game-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .game-header h2 {
+    font-size: 2em;
+    color: #333;
+  }
+  .game-header p { color: #777; font-size: 1.1em; }
+
+  /* ===== Memory ===== */
+  .memory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .memory-card {
+    aspect-ratio: 1;
+    background: linear-gradient(145deg, #667eea, #764ba2);
+    border-radius: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8em;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    transition: transform 0.3s, box-shadow 0.3s;
+    user-select: none;
+    color: transparent;
+  }
+  .memory-card.flipped {
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    color: #333;
+    transform: rotateY(360deg);
+  }
+  .memory-card.matched {
+    background: #c8e6c9;
+    color: #2e7d32;
+    cursor: default;
+    transform: scale(0.95);
+  }
+  .memory-card:not(.flipped):not(.matched):hover { transform: scale(1.04); }
+
+  /* ===== Math ===== */
+  .math-display {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .math-equation {
+    font-size: 4.5em;
+    font-weight: 900;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  .math-equation .op { color: #f5576c; }
+  .math-options {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .math-options button {
+    width: 90px; height: 90px;
+    border: none;
+    border-radius: 20px;
+    font-size: 2.2em;
+    font-weight: 700;
+    font-family: inherit;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  }
+  .math-options button:nth-child(1) { background: linear-gradient(135deg, #f093fb, #f5576c); }
+  .math-options button:nth-child(2) { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+  .math-options button:nth-child(3) { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+  .math-options button:nth-child(4) { background: linear-gradient(135deg, #fa709a, #fee140); color: #333; }
+  .math-options button:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
+  .math-options button:active { transform: scale(0.92); }
+  .math-options button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ===== Spelling ===== */
+  .spelling-area { text-align: center; padding: 20px; }
+  .spelling-image {
+    font-size: 7em;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .spelling-hint {
+    font-size: 1.3em; color: #888; margin-bottom: 16px;
+  }
+  .spelling-blanks {
+    font-size: 2.4em;
+    letter-spacing: 12px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  .spelling-keyboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  .spelling-keyboard button {
+    width: 48px; height: 48px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    font-size: 1.3em;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.12s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  .spelling-keyboard button:hover { transform: scale(1.1); }
+  .spelling-keyboard button:active { transform: scale(0.9); }
+  .spelling-keyboard button.used { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* ===== Journal ===== */
+  .journal-form { max-width: 600px; margin: 0 auto; }
+  .journal-form label {
+    display: block;
+    font-weight: 700;
+    font-size: 1.1em;
+    color: #555;
+    margin-top: 18px;
+    margin-bottom: 6px;
+  }
+  .journal-form input,
+  .journal-form select,
+  .journal-form textarea {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #e0e0e0;
+    border-radius: 16px;
+    font-size: 1em;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .journal-form input:focus,
+  .journal-form select:focus,
+  .journal-form textarea:focus {
+    border-color: #667eea;
+  }
+  .journal-form textarea { min-height: 120px; resize: vertical; }
+  .journal-form button {
+    margin-top: 20px;
+    padding: 14px 40px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.2em;
+    font-weight: 700;
+    font-family: inherit;
+    color: #fff;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 6px 20px rgba(102,126,234,0.3);
+  }
+  .journal-form button:hover { transform: translateY(-3px); }
+  .journal-entries {
+    margin-top: 30px;
+  }
+  .journal-entry {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .journal-entry h4 { color: #667eea; }
+  .journal-entry small { color: #aaa; }
+  .journal-entry p { margin-top: 8px; color: #555; }
+
+  /* ===== Feedback ===== */
+  .feedback {
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: 700;
+    margin: 16px 0;
+    min-height: 2em;
+    transition: opacity 0.3s;
+  }
+  .score {
+    text-align: center;
+    font-size: 1.1em;
+    color: #888;
+    margin-bottom: 16px;
+  }
+  .btn-reset {
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1em;
+    font-weight: 700;
+    font-family: inherit;
+    background: #eee;
+    color: #666;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .btn-reset:hover { background: #ddd; color: #333; }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.8em; }
+    .memory-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .math-equation { font-size: 3em; }
+    .math-options button { width: 70px; height: 70px; font-size: 1.6em; }
+    .spelling-image { font-size: 5em; }
+    .spelling-keyboard button { width: 40px; height: 40px; font-size: 1.1em; }
+    .game-nav button { padding: 12px 20px; font-size: 1em; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>遊戲學習樂園</h1>
+  <p>邊玩邊學，開心成長！</p>
+</header>
+
+<nav class="game-nav">
+  <button class="nav-home active" onclick="showGame('home')">首頁</button>
+  <button class="nav-memory" onclick="showGame('memory')">記憶配對</button>
+  <button class="nav-math"    onclick="showGame('math')">算術挑戰</button>
+  <button class="nav-spelling" onclick="showGame('spelling')">拼字遊戲</button>
+  <button class="nav-journal"  onclick="showGame('journal')">心得日記</button>
+</nav>
+
+<!-- ===== Home ===== -->
+<div id="game-home" class="game-container active">
+  <div class="game-header">
+    <h2>歡迎來到遊戲學習樂園</h2>
+    <p>選一個遊戲開始吧！</p>
+  </div>
+  <div class="home-grid">
+    <div class="home-card card-memory" onclick="showGame('memory')">
+      <div class="icon">🧠</div>
+      <h3>記憶配對</h3>
+      <p>翻牌找出相同的圖案</p>
+    </div>
+    <div class="home-card card-math" onclick="showGame('math')">
+      <div class="icon">🔢</div>
+      <h3>算術挑戰</h3>
+      <p>加加減減動動腦</p>
+    </div>
+    <div class="home-card card-spelling" onclick="showGame('spelling')">
+      <div class="icon">🔤</div>
+      <h3>拼字遊戲</h3>
+      <p>看圖案拼出英文單字</p>
+    </div>
+    <div class="home-card card-journal" onclick="showGame('journal')">
+      <div class="icon">📝</div>
+      <h3>心得日記</h3>
+      <p>記錄學習的點點滴滴</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Memory Game ===== -->
+<div id="game-memory" class="game-container">
+  <button class="btn-back" onclick="showGame('home')">返回首頁</button>
+  <div class="game-header">
+    <h2>記憶配對</h2>
+    <p>記住位置，找出相同的圖案！</p>
+  </div>
+  <div id="memory-feedback" class="feedback"></div>
+  <div class="score">配對：<span id="memory-score">0</span> / 8</div>
+  <div class="memory-grid" id="memory-grid"></div>
+  <button class="btn-reset" onclick="initMemory()">重新開始</button>
+</div>
+
+<!-- ===== Math Game ===== -->
+<div id="game-math" class="game-container">
+  <button class="btn-back" onclick="showGame('home')">返回首頁</button>
+  <div class="game-header">
+    <h2>算術挑戰</h2>
+    <p>選出正確的答案！</p>
+  </div>
+  <div id="math-feedback" class="feedback"></div>
+  <div class="score">得分：<span id="math-score">0</span></div>
+  <div class="math-display">
+    <div class="math-equation" id="math-equation"></div>
+    <div class="math-options" id="math-options"></div>
+  </div>
+  <button class="btn-reset" onclick="initMath()">重新開始</button>
+</div>
+
+<!-- ===== Spelling Game ===== -->
+<div id="game-spelling" class="game-container">
+  <button class="btn-back" onclick="showGame('home')">返回首頁</button>
+  <div class="game-header">
+    <h2>拼字遊戲</h2>
+    <p>看到圖案，拼出正確的英文單字！</p>
+  </div>
+  <div id="spelling-feedback" class="feedback"></div>
+  <div class="score">得分：<span id="spelling-score">0</span></div>
+  <div class="spelling-area">
+    <div class="spelling-image" id="spelling-image"></div>
+    <div class="spelling-hint" id="spelling-hint"></div>
+    <div class="spelling-blanks" id="spelling-blanks"></div>
+    <div class="spelling-keyboard" id="spelling-keyboard"></div>
+  </div>
+  <button class="btn-reset" onclick="initSpelling()">下一題</button>
+</div>
+
+<!-- ===== Journal ===== -->
+<div id="game-journal" class="game-container">
+  <button class="btn-back" onclick="showGame('home')">返回首頁</button>
+  <div class="game-header">
+    <h2>我的學習心得</h2>
+    <p>記錄今天學到了什麼！</p>
+  </div>
+  <div class="journal-form">
+    <label>你的名字</label>
+    <input type="text" id="journal-name" placeholder="輸入名字...">
+
+    <label>今天玩了哪個遊戲？</label>
+    <select id="journal-game">
+      <option value="記憶配對">記憶配對</option>
+      <option value="算術挑戰">算術挑戰</option>
+      <option value="拼字遊戲">拼字遊戲</option>
+    </select>
+
+    <label>心情如何？</label>
+    <select id="journal-mood">
+      <option value="開心">開心</option>
+      <option value="普通">普通</option>
+      <option value="有點難">有點難</option>
+      <option value="超級興奮">超級興奮</option>
+    </select>
+
+    <label>今天學到了什麼？</label>
+    <textarea id="journal-text" placeholder="寫下你的心得..."></textarea>
+
+    <button onclick="saveJournal()">儲存心得</button>
+  </div>
+  <div class="journal-entries" id="journal-entries"></div>
+</div>
+
+<script>
+// ===== Navigation =====
+function showGame(id) {
+  document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.game-nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('game-' + id).classList.add('active');
+  const navBtn = document.querySelector(`.nav-${id}`);
+  if (navBtn) navBtn.classList.add('active');
+}
+
+// ===== Memory Game =====
+const MEMORY_ICONS = ['🍎','🍊','🍋','🍇','🍓','🍒','🍑','🍌'];
+let memoryCards = [];
+let memoryFlipped = [];
+let memoryMatched = [];
+let memoryLocked = false;
+let memoryScore = 0;
+
+function initMemory() {
+  memoryFlipped = [];
+  memoryMatched = [];
+  memoryLocked = false;
+  memoryScore = 0;
+  document.getElementById('memory-score').textContent = '0';
+  document.getElementById('memory-feedback').textContent = '';
+
+  let icons = [...MEMORY_ICONS, ...MEMORY_ICONS];
+  for (let i = icons.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [icons[i], icons[j]] = [icons[j], icons[i]];
+  }
+  memoryCards = icons;
+  const grid = document.getElementById('memory-grid');
+  grid.innerHTML = '';
+  icons.forEach((icon, idx) => {
+    const card = document.createElement('div');
+    card.className = 'memory-card';
+    card.dataset.idx = idx;
+    card.textContent = icon;
+    card.addEventListener('click', () => flipCard(idx));
+    grid.appendChild(card);
+  });
+}
+
+function flipCard(idx) {
+  if (memoryLocked) return;
+  const card = document.querySelectorAll('.memory-card')[idx];
+  if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  if (memoryFlipped.length >= 2) return;
+
+  card.classList.add('flipped');
+  memoryFlipped.push(idx);
+
+  if (memoryFlipped.length === 2) {
+    memoryLocked = true;
+    const [a, b] = memoryFlipped;
+    if (memoryCards[a] === memoryCards[b]) {
+      setTimeout(() => {
+        document.querySelectorAll('.memory-card')[a].classList.add('matched');
+        document.querySelectorAll('.memory-card')[b].classList.add('matched');
+        memoryMatched.push(a, b);
+        memoryScore++;
+        document.getElementById('memory-score').textContent = memoryScore;
+        if (memoryMatched.length === memoryCards.length) {
+          document.getElementById('memory-feedback').textContent = '完成所有配對';
+        }
+        memoryFlipped = [];
+        memoryLocked = false;
+      }, 400);
+    } else {
+      document.getElementById('memory-feedback').textContent = '再試一次';
+      setTimeout(() => {
+        document.querySelectorAll('.memory-card')[a].classList.remove('flipped');
+        document.querySelectorAll('.memory-card')[b].classList.remove('flipped');
+        memoryFlipped = [];
+        memoryLocked = false;
+        document.getElementById('memory-feedback').textContent = '';
+      }, 800);
+    }
+  }
+}
+
+// ===== Math Game =====
+let mathScore = 0;
+let mathAnswer = 0;
+
+function initMath() {
+  mathScore = 0;
+  document.getElementById('math-score').textContent = '0';
+  document.getElementById('math-feedback').textContent = '';
+  nextMath();
+}
+
+function nextMath() {
+  const feedback = document.getElementById('math-feedback');
+  feedback.textContent = '';
+  const optionsContainer = document.getElementById('math-options');
+  const btns = optionsContainer.querySelectorAll('button');
+  btns.forEach(b => b.disabled = false);
+
+  let a = Math.floor(Math.random() * 10) + 1;
+  let b = Math.floor(Math.random() * 10) + 1;
+  const ops = ['+', '-'];
+  let op = ops[Math.floor(Math.random() * ops.length)];
+  if (op === '-' && a < b) { [a, b] = [b, a]; }
+  mathAnswer = op === '+' ? a + b : a - b;
+
+  document.getElementById('math-equation').innerHTML = `${a} <span class="op">${op}</span> ${b} = ?`;
+
+  const answers = new Set();
+  answers.add(mathAnswer);
+  while (answers.size < 4) {
+    const offset = Math.floor(Math.random() * 7) - 3;
+    const alt = mathAnswer + offset;
+    if (alt >= 0 && !answers.has(alt)) answers.add(alt);
+  }
+  const shuffled = [...answers].sort(() => Math.random() - 0.5);
+  const optionBtns = optionsContainer.querySelectorAll('button');
+  optionBtns.forEach((btn, i) => {
+    btn.textContent = shuffled[i];
+    btn.dataset.value = shuffled[i];
+    btn.disabled = false;
+  });
+}
+
+function checkMath(btn) {
+  const val = parseInt(btn.dataset.value);
+  const feedback = document.getElementById('math-feedback');
+  const btns = document.querySelectorAll('#math-options button');
+  if (val === mathAnswer) {
+    mathScore++;
+    document.getElementById('math-score').textContent = mathScore;
+    feedback.textContent = '答對了';
+    feedback.style.color = '#2e7d32';
+    btns.forEach(b => b.disabled = true);
+    setTimeout(nextMath, 800);
+  } else {
+    feedback.textContent = '再想想';
+    feedback.style.color = '#c62828';
+    btn.disabled = true;
+  }
+}
+
+// ===== Spelling Game =====
+const SPELLING_WORDS = [
+  { emoji: '🐱', word: 'CAT', hint: '一種毛茸茸的寵物' },
+  { emoji: '🐶', word: 'DOG', hint: '人類最好的朋友' },
+  { emoji: '🐟', word: 'FISH', hint: '在水裡游的動物' },
+  { emoji: '🐦', word: 'BIRD', hint: '有翅膀會飛的動物' },
+  { emoji: '🐄', word: 'COW', hint: '會提供牛奶的動物' },
+  { emoji: '🐷', word: 'PIG', hint: '粉紅色的農場動物' },
+  { emoji: '🐘', word: 'ELEPHANT', hint: '體型最大的陸地動物' },
+  { emoji: '🦁', word: 'LION', hint: '森林之王' },
+];
+
+let spellingIndex = 0;
+let spellingWord = '';
+let spellingGuessed = [];
+let spellingWrong = [];
+let spellingScoreVal = 0;
+
+function initSpelling() {
+  document.getElementById('spelling-feedback').textContent = '';
+  spellingIndex = Math.floor(Math.random() * SPELLING_WORDS.length);
+  spellingWord = SPELLING_WORDS[spellingIndex].word;
+  spellingGuessed = [];
+  spellingWrong = [];
+
+  document.getElementById('spelling-image').textContent = SPELLING_WORDS[spellingIndex].emoji;
+  document.getElementById('spelling-hint').textContent = '提示：' + SPELLING_WORDS[spellingIndex].hint;
+  renderSpellingBlanks();
+  renderSpellingKeyboard();
+}
+
+function renderSpellingBlanks() {
+  const container = document.getElementById('spelling-blanks');
+  container.innerHTML = spellingWord.split('').map((ch, i) => {
+    return spellingGuessed.includes(ch) ? `<span style="color:#2e7d32">${ch}</span>` : '_';
+  }).join(' ');
+}
+
+function renderSpellingKeyboard() {
+  const container = document.getElementById('spelling-keyboard');
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  container.innerHTML = '';
+  for (const ch of letters) {
+    const btn = document.createElement('button');
+    btn.textContent = ch;
+    if (spellingGuessed.includes(ch) || spellingWrong.includes(ch)) btn.className = 'used';
+    btn.addEventListener('click', () => guessSpellingLetter(ch));
+    container.appendChild(btn);
+  }
+}
+
+function guessSpellingLetter(ch) {
+  if (spellingGuessed.includes(ch) || spellingWrong.includes(ch)) return;
+  const feedback = document.getElementById('spelling-feedback');
+
+  if (spellingWord.includes(ch)) {
+    spellingGuessed.push(ch);
+    renderSpellingBlanks();
+    renderSpellingKeyboard();
+    if (spellingWord.split('').every(c => spellingGuessed.includes(c))) {
+      spellingScoreVal++;
+      document.getElementById('spelling-score').textContent = spellingScoreVal;
+      feedback.textContent = '拼對了';
+      feedback.style.color = '#2e7d32';
+      setTimeout(initSpelling, 1200);
+    }
+  } else {
+    spellingWrong.push(ch);
+    renderSpellingKeyboard();
+    feedback.textContent = '再試試';
+    feedback.style.color = '#c62828';
+  }
+}
+
+// ===== Journal =====
+function saveJournal() {
+  const name = document.getElementById('journal-name').value.trim();
+  const game = document.getElementById('journal-game').value;
+  const mood = document.getElementById('journal-mood').value;
+  const text = document.getElementById('journal-text').value.trim();
+  if (!name || !text) { alert('請填寫名字和心得內容'); return; }
+
+  const entry = { name, game, mood, text, date: new Date().toLocaleString('zh-TW') };
+  const entries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+  entries.unshift(entry);
+  localStorage.setItem('journalEntries', JSON.stringify(entries));
+
+  document.getElementById('journal-name').value = '';
+  document.getElementById('journal-text').value = '';
+  renderJournal();
+}
+
+function renderJournal() {
+  const container = document.getElementById('journal-entries');
+  const entries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+  if (entries.length === 0) {
+    container.innerHTML = '<p style="color:#aaa;text-align:center;">還沒有心得記錄，快來寫第一篇吧！</p>';
+    return;
+  }
+  container.innerHTML = entries.map(e => `
+    <div class="journal-entry">
+      <h4>${e.name} <small>${e.date}</small></h4>
+      <p>遊戲：${e.game} ｜ 心情：${e.mood}</p>
+      <p>${e.text}</p>
+    </div>
+  `).join('');
+}
+
+// Init
+initMemory();
+initMath();
+initSpelling();
+renderJournal();
+</script>
+
+</body>
+</html>
